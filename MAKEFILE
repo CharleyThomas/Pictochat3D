@@ -1,89 +1,38 @@
-#---------------------------------------------------------------------------------
-# TARGET is the name of the output binary
-#---------------------------------------------------------------------------------
-TARGET		:=	PictoChat3D
-BUILD		:=	build
-SOURCES		:=	source
-DATA		:=	data
-INCLUDES	:=	include
+name: Build 3DS Homebrew
 
-#---------------------------------------------------------------------------------
-# options for code generation
-#---------------------------------------------------------------------------------
-ARCH	:=	-march=armv6k -mtune=mpcore -mfloat-abi=hard -mfpu=vfpv2
+on:
+  push:
+    branches: [ "main", "master" ]
+  pull_request:
+    branches: [ "main", "master" ]
 
-CFLAGS	:=	-g -Wall -O2 -mword-relocations \
-			-fomit-frame-pointer -ffunction-sections \
-			$(ARCH)
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    container: devkitpro/devkitarm:latest
 
-CFLAGS	+=	-DARM11 -D_3DS
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-CXXFLAGS	:= $(CFLAGS) -fno-rtti -fno-exceptions -std=gnu++11
+      - name: Install build tools (makerom and bannertool)
+        run: |
+          apt-get update && apt-get install -y curl p7zip-full
+          # Install makerom
+          curl -L -o /usr/local/bin/makerom https://github.com/proxam/makerom/releases/download/v0.18.4/makerom-x86_64-linux-gnu
+          chmod +x /usr/local/bin/makerom
+          # Install bannertool
+          curl -L -o /usr/local/bin/bannertool https://github.com/Steveice10/bannertool/releases/download/1.2.0/bannertool-linux
+          chmod +x /usr/local/bin/bannertool
 
-ASFLAGS	:=	-g $(ARCH)
-LDFLAGS	=	-specs=3dsx.specs -g $(ARCH) -Wl,-Map,$(notdir $*.map) --gc-sections
+      - name: Build project
+        run: |
+          make -f MAKEFILE
 
-LIBS	:=	-lcitro2d -lcitro3d -lctru -lm
-
-#---------------------------------------------------------------------------------
-# path to devkitARM
-#---------------------------------------------------------------------------------
-export CTRPLATFORM	:=	3DS
-export DEVKITARM	:=	/opt/devkitpro/devkitARM
-export DEVKITPRO	:=	/opt/devkitpro
-
-export PATH			:=	$(DEVKITARM)/bin:$(PATH)
-
-#---------------------------------------------------------------------------------
-# list directories
-#---------------------------------------------------------------------------------
-ifneq ($(BUILD),$(notdir $(CURDIR)))
-export OUTPUT	:=	$(CURDIR)/$(TARGET)
-export TOPDIR	:=	$(CURDIR)
-export VPATH	:=	$(foreach dir,$(SOURCES),$(CURDIR)/$(dir)) \
-					$(foreach dir,$(DATA),$(CURDIR)/$(dir))
-
-export DEPSDIR	:=	$(CURDIR)/$(BUILD)
-
-CFILES		:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.c)))
-CPPFILES	:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.cpp)))
-SFILES		:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.s)))
-
-export OFILES	:=	$(CPPFILES:.cpp=.o) $(CFILES:.c=.o) $(SFILES:.s=.o)
-
-.PHONY: $(BUILD) clean all
-
-#---------------------------------------------------------------------------------
-all: $(BUILD)
-
-$(BUILD):
-	@[ -d $@ ] || mkdir -p $@
-	@$(MAKE) --no-print-directory -C $@ -f $(CURDIR)/Makefile
-
-clean:
-	@echo clean ...
-	@rm -fr $(BUILD) *.3dsx *.elf *.cia *.smdh
-
-#---------------------------------------------------------------------------------
-else
-
-DEPENDS	:=	$(OFILES:.o=.d)
-
-all:	$(OUTPUT).3dsx $(OUTPUT).cia
-
-$(OUTPUT).cia: $(OUTPUT).elf
-	@bannertool makebanner -o banner.bin -i ../images/logo.png -a "PictoChat3D Team" -d "PictoChat 3D"
-	@bannertool makeicon -o icon.bin -i ../images/logo.png -s "PictoChat 3D" -l "PictoChat3D" -p "Team"
-	@makerom -f cia -o $@ -elf $< -rsf $(DEVKITPRO)/devkitARM/3ds/3dsx.rsf -banner banner.bin -icon icon.bin
-	@rm -f banner.bin icon.bin
-
-$(OUTPUT).3dsx:	$(OUTPUT).elf
-
-$(OUTPUT).elf:	$(OFILES)
-
-%.o: %.cpp
-	@echo $(notdir $<)
-	@$(CXX) -MMD -MP -MF $(DEPSDIR)/$*.d $(CXXFLAGS) -c $< -o $@
-
-%.o: %.c
-	@echo $(
+      - name: Upload Build Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: PictoChat3D-Build
+          path: |
+            *.3dsx
+            *.cia
