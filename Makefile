@@ -11,11 +11,11 @@ include $(DEVKITPRO)/devkitARM/3ds_rules
 
 CFLAGS   := -g -Wall -O2 -mword-relocations -fomit-frame-pointer -ffunction-sections -march=armv6k -mtune=mpcore -mfloat-abi=hard -mfpu=vfpv2 -DARM11 -D_3DS
 CXXFLAGS := $(CFLAGS) -fno-rtti -fno-exceptions -std=gnu++11
-LDFLAGS  := -specs=3dsx.specs -g -march=armv6k -mtune=mpcore -mfloat-abi=hard -mfpu=vfpv2 -Wl,-Map,$(TARGET).map --gc-sections
+LDFLAGS  := -specs=3dsx.specs -g -march=armv6k -mtune=mpcore -mfloat-abi=hard -mfpu=vfpv2 -Wl,-Map,$(TARGET).map -Wl,--gc-sections
 LIBS     := -lcitro2d -lcitro3d -lctru -lm
 
-CFILES   := $(foreach dir,$(SOURCES),$(wildcard $(dir)/*.c))
-CPPFILES := $(foreach dir,$(SOURCES),$(wildcard $(dir)/*.cpp))
+CFILES   := $(wildcard $(SOURCES)/*.c)
+CPPFILES := $(wildcard $(SOURCES)/*.cpp)
 OFILES   := $(CPPFILES:.cpp=.o) $(CFILES:.c=.o)
 
 all: $(TARGET).3dsx $(TARGET).cia
