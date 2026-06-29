@@ -1,0 +1,20 @@
+# Build outputs
+*.3dsx
+*.cia
+*.elf
+*.smdh
+*.vsh
+*.gsh
+
+# Object files and temporary build directories
+*.o
+*.d
+build/
+output/
+
+# System and editor files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
