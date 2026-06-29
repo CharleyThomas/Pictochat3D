@@ -27,7 +27,7 @@ jobs:
 
       - name: Install 3DS Development Libraries
         run: |
-          dkp-pacman -Syu --noconfirm 3ds-dev 3ds-citro3d 3ds-citro2d
+          dkp-pacman -Syu --noconfirm 3ds-dev
 
       - name: Build project
         run: |
