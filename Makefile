@@ -1,38 +1,41 @@
-name: Build 3DS Homebrew
+TARGET   := PictoChat3D
+SOURCES  := source
+DATA     := data
+INCLUDES := include
 
-on:
-  push:
-    branches: [ "main", "master" ]
-  pull_request:
-    branches: [ "main", "master" ]
+export DEVKITARM  := /opt/devkitpro/devkitARM
+export DEVKITPRO  := /opt/devkitpro
+export PATH       := $(DEVKITARM)/bin:$(PATH)
 
-jobs:
-  build:
-    runs-on: ubuntu-latest
-    container: devkitpro/devkitarm:latest
+include $(DEVKITPRO)/devkitARM/3ds_rules
 
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+CFLAGS   := -g -Wall -O2 -mword-relocations -fomit-frame-pointer -ffunction-sections -march=armv6k -mtune=mpcore -mfloat-abi=hard -mfpu=vfpv2 -DARM11 -D_3DS
+CXXFLAGS := $(CFLAGS) -fno-rtti -fno-exceptions -std=gnu++11
+LDFLAGS  := -specs=3dsx.specs -g -march=armv6k -mtune=mpcore -mfloat-abi=hard -mfpu=vfpv2 -Wl,-Map,$(TARGET).map --gc-sections
+LIBS     := -lcitro2d -lcitro3d -lctru -lm
 
-      - name: Install build tools (makerom and bannertool)
-        run: |
-          apt-get update && apt-get install -y curl p7zip-full
-          # Install makerom
-          curl -L -o /usr/local/bin/makerom https://github.com/proxam/makerom/releases/download/v0.18.4/makerom-x86_64-linux-gnu
-          chmod +x /usr/local/bin/makerom
-          # Install bannertool
-          curl -L -o /usr/local/bin/bannertool https://github.com/Steveice10/bannertool/releases/download/1.2.0/bannertool-linux
-          chmod +x /usr/local/bin/bannertool
+CFILES   := $(foreach dir,$(SOURCES),$(wildcard $(dir)/*.c))
+CPPFILES := $(foreach dir,$(SOURCES),$(wildcard $(dir)/*.cpp))
+OFILES   := $(CPPFILES:.cpp=.o) $(CFILES:.c=.o)
 
-      - name: Build project
-        run: |
-          make -f MAKEFILE
+all: $(TARGET).3dsx $(TARGET).cia
 
-      - name: Upload Build Artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: PictoChat3D-Build
-          path: |
-            *.3dsx
-            *.cia
+$(TARGET).3dsx: $(TARGET).elf
+
+$(TARGET).cia: $(TARGET).elf
+	@bannertool makebanner -o banner.bin -i images/logo.png -a "PictoChat3D Team" -d "PictoChat 3D"
+	@bannertool makeicon -o icon.bin -i images/logo.png -s "PictoChat 3D" -l "PictoChat3D" -p "Team"
+	@makerom -f cia -o $@ -elf $< -rsf $(DEVKITPRO)/devkitARM/3ds/3dsx.rsf -banner banner.bin -icon icon.bin
+	@rm -f banner.bin icon.bin
+
+$(TARGET).elf: $(OFILES)
+	$(CXX) $(LDFLAGS) $^ $(LIBS) -o $@
+
+%.o: %.cpp
+	$(CXX) $(CXXFLAGS) -c $< -o $@
+
+%.o: %.c
+	$(CC) $(CFLAGS) -c $< -o $@
+
+clean:
+	rm -f $(SOURCES)/*.o *.elf *.3dsx *.cia *.map
