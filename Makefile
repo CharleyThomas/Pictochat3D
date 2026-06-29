@@ -9,9 +9,10 @@ export PATH       := $(DEVKITARM)/bin:$(PATH)
 
 include $(DEVKITPRO)/devkitARM/3ds_rules
 
-CFLAGS   := -g -Wall -O2 -mword-relocations -fomit-frame-pointer -ffunction-sections -march=armv6k -mtune=mpcore -mfloat-abi=hard -mfpu=vfpv2 -DARM11 -D_3DS
+# Added paths for headers and libraries
+CFLAGS   := -g -Wall -O2 -mword-relocations -fomit-frame-pointer -ffunction-sections -march=armv6k -mtune=mpcore -mfloat-abi=hard -mfpu=vfpv2 -DARM11 -D_3DS -I$(DEVKITPRO)/libctru/include
 CXXFLAGS := $(CFLAGS) -fno-rtti -fno-exceptions -std=gnu++11
-LDFLAGS  := -specs=3dsx.specs -g -march=armv6k -mtune=mpcore -mfloat-abi=hard -mfpu=vfpv2 -Wl,-Map,$(TARGET).map -Wl,--gc-sections
+LDFLAGS  := -specs=3dsx.specs -g -march=armv6k -mtune=mpcore -mfloat-abi=hard -mfpu=vfpv2 -Wl,-Map,$(TARGET).map -Wl,--gc-sections -L$(DEVKITPRO)/libctru/lib
 LIBS     := -lcitro2d -lcitro3d -lctru -lm
 
 CFILES   := $(wildcard $(SOURCES)/*.c)
