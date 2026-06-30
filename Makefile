@@ -23,11 +23,7 @@ all: $(TARGET).3dsx $(TARGET).cia
 $(TARGET).3dsx: $(TARGET).elf
 
 $(TARGET).cia: $(TARGET).elf
-	@printf "BM:\000\000\000\000\000\000\0006\000\000\000(\000\000\000\001\000\000\000\001\000\000\000\001\000\030\000\000\000\000\000\004\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\377\377\377\000" > temp_icon.bmp
-	@bannertool makebanner -o banner.bin -i temp_icon.bmp -a "PictoChat3D Team" -d "PictoChat 3D"
-	@bannertool makeicon -o icon.bin -i temp_icon.bmp -s "PictoChat 3D" -l "PictoChat3D" -p "Team"
-	@makerom -f cia -o $@ -elf $< -rsf $(DEVKITPRO)/devkitARM/3ds/3dsx.rsf -banner banner.bin -icon icon.bin
-	@rm -f banner.bin icon.bin temp_icon.bmp
+	@makerom -f cia -o $@ -elf $< -rsf $(DEVKITPRO)/devkitARM/3ds/3dsx.rsf
 
 $(TARGET).elf: $(OFILES)
 	$(CXX) $(LDFLAGS) -o $@ $^ $(LIBS)
@@ -39,4 +35,4 @@ $(TARGET).elf: $(OFILES)
 	$(CC) $(CFLAGS) -c $< -o $@
 
 clean:
-	rm -f $(SOURCES)/*.o *.elf *.3dsx *.cia *.map temp_icon.bmp
+	rm -f $(SOURCES)/*.o *.elf *.3dsx *.cia *.map
