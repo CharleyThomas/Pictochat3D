@@ -18,16 +18,15 @@ CFILES   := $(wildcard $(SOURCES)/*.c)
 CPPFILES := $(wildcard $(SOURCES)/*.cpp)
 OFILES   := $(CPPFILES:.cpp=.o) $(CFILES:.c=.o)
 
-# Build both types
 all: $(TARGET).3dsx $(TARGET).cia
 
 $(TARGET).3dsx: $(TARGET).elf
 
 $(TARGET).cia: $(TARGET).elf
-	@bannertool makebanner -o banner.bin -i images/file.png -a "PictoChat3D Team" -d "PictoChat 3D"
-	@bannertool makeicon -o icon.bin -i images/file.png -s "PictoChat 3D" -l "PictoChat3D" -p "Team"
+	@bannertool makebanner -o banner.bin -i dummy.png -a "PictoChat3D Team" -d "PictoChat 3D"
+	@bannertool makeicon -o icon.bin -i dummy.png -s "PictoChat 3D" -l "PictoChat3D" -p "Team"
 	@makerom -f cia -o $@ -elf $< -rsf $(DEVKITPRO)/devkitARM/3ds/3dsx.rsf -banner banner.bin -icon icon.bin
-	@rm -f banner.bin icon.bin
+	@rm -f banner.bin icon.bin dummy.png
 
 $(TARGET).elf: $(OFILES)
 	$(CXX) $(LDFLAGS) -o $@ $^ $(LIBS)
@@ -39,4 +38,4 @@ $(TARGET).elf: $(OFILES)
 	$(CC) $(CFLAGS) -c $< -o $@
 
 clean:
-	rm -f $(SOURCES)/*.o *.elf *.3dsx *.cia *.map
+	rm -f $(SOURCES)/*.o *.elf *.3dsx *.cia *.map dummy.png
