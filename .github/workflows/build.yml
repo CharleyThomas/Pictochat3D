@@ -17,7 +17,7 @@ jobs:
 
       - name: Install Dependencies
         run: |
-          apt-get update && apt-get install -y curl p7zip-full build-essential libpng-dev python3
+          apt-get update && apt-get install -y curl p7zip-full build-essential libpng-dev
 
       - name: Install makerom
         run: |
@@ -34,10 +34,6 @@ jobs:
           chmod +x /usr/local/bin/bannertool
           cd ..
           rm -rf bannertool
-
-      - name: Generate Dummy Icon Image
-        run: |
-          python3 -c "import base64; open('dummy.png', 'wb').write(base64.b64decode('iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAYAAABXAvmHAAAABmJLR0QA/wD/AP+gvaeTAAAAI0lEQVRoge3OMQEAAAwCoNm/tOnBhVbAn0pSgUAgEAgEAoFAQO4CH3UBCY9917MAAAAASUVORK5CYII='))"
 
       - name: Build project
         run: |
