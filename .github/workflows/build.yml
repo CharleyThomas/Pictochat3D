@@ -15,6 +15,10 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Install Official 3DS Build Tools
+        run: |
+          dkp-pacman -Sy --noconfirm 3ds-tools
+
       - name: Build project
         run: |
           make
@@ -24,3 +28,9 @@ jobs:
         with:
           name: PictoChat3D.3dsx
           path: PictoChat3D.3dsx
+
+      - name: Upload CIA Installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: PictoChat3D.cia
+          path: PictoChat3D.cia
