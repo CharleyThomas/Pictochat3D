@@ -15,6 +15,16 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Install build tools (makerom and bannertool)
+        run: |
+          apt-get update && apt-get install -y curl p7zip-full
+          # Install makerom
+          curl -L -o /usr/local/bin/makerom https://github.com/proxam/makerom/releases/download/v0.18.4/makerom-x86_64-linux-gnu
+          chmod +x /usr/local/bin/makerom
+          # Install working bannertool static binary
+          curl -L -o /usr/local/bin/bannertool https://github.com/vortaim/bannertool/releases/download/1.2.0/bannertool
+          chmod +x /usr/local/bin/bannertool
+
       - name: Build project
         run: |
           make
@@ -25,8 +35,8 @@ jobs:
           name: PictoChat3D.3dsx
           path: PictoChat3D.3dsx
 
-      - name: Upload ELF Debug File
+      - name: Upload CIA Installer
         uses: actions/upload-artifact@v4
         with:
-          name: PictoChat3D.elf
-          path: PictoChat3D.elf
+          name: PictoChat3D.cia
+          path: PictoChat3D.cia
