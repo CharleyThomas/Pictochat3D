@@ -30,7 +30,9 @@ int main(int argc, char* argv[]) {
 
         C3D_FrameBegin(C3D_FRAME_SYNCDRAW);
         
-        // Top Screen
+        // -----------------------------------------
+        // TOP SCREEN
+        // -----------------------------------------
         C2D_TargetClear(topTarget, clrBackground);
         C2D_SceneBegin(topTarget);
         for (int i = 0; i < TOP_WIDTH; i += 20) {
@@ -41,16 +43,27 @@ int main(int argc, char* argv[]) {
         }
         C2D_DrawRectSolid(0, 0, 0, TOP_WIDTH, 25, clrBorder);
         
-        // Bottom Screen
+        // -----------------------------------------
+        // BOTTOM SCREEN
+        // -----------------------------------------
         C2D_TargetClear(botTarget, clrBackground);
         C2D_SceneBegin(botTarget);
-        C2D_DrawRectangleOutline(10, 10, 300, 120, clrBorder, 2.0f, 0.0f);
-        C2D_DrawRectSolid(10, 140, 0, 70, 30, clrButton);
-        C2D_DrawRectangleOutline(10, 140, 70, 30, clrBorder, 1.5f, 0.0f);
-        C2D_DrawRectSolid(240, 140, 0, 70, 30, clrButton);
-        C2D_DrawRectangleOutline(240, 140, 70, 30, clrBorder, 1.5f, 0.0f);
-        C2D_DrawRectSolid(10, 185, 0, 300, 45, C2D_Color32(0xE5, 0xE5, 0xE5, 0xFF));
-        C2D_DrawRectangleOutline(10, 185, 300, 45, clrBorder, 1.0f, 0.0f);
+        
+        // Draw main canvas border by layering a dark rect under a light rect
+        C2D_DrawRectSolid(10, 10, 0, 300, 120, clrBorder);
+        C2D_DrawRectSolid(12, 12, 0, 296, 116, clrBackground);
+
+        // "Clear" Button
+        C2D_DrawRectSolid(10, 140, 0, 70, 30, clrBorder);
+        C2D_DrawRectSolid(11, 141, 0, 68, 28, clrButton);
+
+        // "Send" Button
+        C2D_DrawRectSolid(240, 140, 0, 70, 30, clrBorder);
+        C2D_DrawRectSolid(241, 141, 0, 68, 28, clrButton);
+
+        // Keyboard placeholder area
+        C2D_DrawRectSolid(10, 185, 0, 300, 45, clrBorder);
+        C2D_DrawRectSolid(11, 186, 0, 298, 43, C2D_Color32(0xE5, 0xE5, 0xE5, 0xFF));
 
         C3D_FrameEnd(0);
     }
