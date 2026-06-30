@@ -26,26 +26,5 @@ jobs:
 
       - name: Compile bannertool from source
         run: |
-          git clone --recursive https://github.com/Epicpkmn11/bannertool.git
-          cd bannertool
-          make
-          cp output/linux-x86_64/bannertool /usr/local/bin/bannertool
-          chmod +x /usr/local/bin/bannertool
-          cd ..
-          rm -rf bannertool
-
-      - name: Build project
-        run: |
-          make
-
-      - name: Upload 3DSX File
-        uses: actions/upload-artifact@v4
-        with:
-          name: PictoChat3D.3dsx
-          path: PictoChat3D.3dsx
-
-      - name: Upload CIA Installer
-        uses: actions/upload-artifact@v4
-        with:
-          name: PictoChat3D.cia
-          path: PictoChat3D.cia
+          # Force Git to use HTTPS instead of the dead git:// protocol
+          git config --global url."
