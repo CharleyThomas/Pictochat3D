@@ -21,8 +21,8 @@ jobs:
           # Install makerom
           curl -L -o /usr/local/bin/makerom https://github.com/proxam/makerom/releases/download/v0.18.4/makerom-x86_64-linux-gnu
           chmod +x /usr/local/bin/makerom
-          # Install bannertool
-          curl -L -o /usr/local/bin/bannertool https://github.com/Steveice10/bannertool/releases/download/1.2.0/bannertool-linux
+          # Install working Linux x86_64 bannertool
+          curl -L -o /usr/local/bin/bannertool https://github.com/vortaim/bannertool/releases/download/1.2.0/bannertool
           chmod +x /usr/local/bin/bannertool
 
       - name: Build project
