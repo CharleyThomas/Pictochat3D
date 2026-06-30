@@ -15,26 +15,6 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Install Dependencies
-        run: |
-          apt-get update && apt-get install -y curl p7zip-full build-essential libpng-dev
-
-      - name: Install makerom
-        run: |
-          curl -L -o /usr/local/bin/makerom https://github.com/proxam/makerom/releases/download/v0.18.4/makerom-x86_64-linux-gnu
-          chmod +x /usr/local/bin/makerom
-
-      - name: Compile bannertool from source
-        run: |
-          git config --global url.https://github.com/.insteadOf git://github.com/
-          git clone --recursive https://github.com/Epicpkmn11/bannertool.git
-          cd bannertool
-          make
-          cp output/linux-x86_64/bannertool /usr/local/bin/bannertool
-          chmod +x /usr/local/bin/bannertool
-          cd ..
-          rm -rf bannertool
-
       - name: Build project
         run: |
           make
@@ -44,9 +24,3 @@ jobs:
         with:
           name: PictoChat3D.3dsx
           path: PictoChat3D.3dsx
-
-      - name: Upload CIA Installer
-        uses: actions/upload-artifact@v4
-        with:
-          name: PictoChat3D.cia
-          path: PictoChat3D.cia
