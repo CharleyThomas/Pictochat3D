@@ -9,7 +9,6 @@ export PATH       := $(DEVKITARM)/bin:$(PATH)
 
 include $(DEVKITPRO)/devkitARM/3ds_rules
 
-# Added paths for headers and libraries
 CFLAGS   := -g -Wall -O2 -mword-relocations -fomit-frame-pointer -ffunction-sections -march=armv6k -mtune=mpcore -mfloat-abi=hard -mfpu=vfpv2 -DARM11 -D_3DS -I$(DEVKITPRO)/libctru/include
 CXXFLAGS := $(CFLAGS) -fno-rtti -fno-exceptions -std=gnu++11
 LDFLAGS  := -specs=3dsx.specs -g -march=armv6k -mtune=mpcore -mfloat-abi=hard -mfpu=vfpv2 -Wl,-Map,$(TARGET).map -Wl,--gc-sections -L$(DEVKITPRO)/libctru/lib
@@ -30,7 +29,7 @@ $(TARGET).cia: $(TARGET).elf
 	@rm -f banner.bin icon.bin
 
 $(TARGET).elf: $(OFILES)
-	$(CXX) $(LDFLAGS) $^ $(LIBS) -o $@
+	$(CXX) $(LDFLAGS) -o $@ $^ $(LIBS)
 
 %.o: %.cpp
 	$(CXX) $(CXXFLAGS) -c $< -o $@
