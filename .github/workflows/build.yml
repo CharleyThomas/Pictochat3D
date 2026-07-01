@@ -1,36 +1,129 @@
-name: Build 3DS Homebrew
+name: C/C++ CI
 
 on:
   push:
-    branches: [ "main", "master" ]
+    branches: [ main ]
   pull_request:
-    branches: [ "main", "master" ]
+    branches: [ main ]
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    container: devkitpro/devkitarm:latest
+    container: devkitpro/devkitarm
+    
+    permissions:
+      contents: write
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 2 # Allows git to see the previous commit for comparison
 
-      - name: Install Official 3DS Build Tools
-        run: |
-          dkp-pacman -Sy --noconfirm 3ds-tools
+    # 1. Update package lists and install devkitPro official 3DS build tools (includes makerom)
+    - name: Install Official 3DS Build Tools
+      run: |
+        dkp-pacman -Sy --noconfirm 3ds-tools
 
-      - name: Build project
-        run: |
-          make
+    # 2. Check if release_log.md was changed, THEN parse the bottom line
+    - name: Parse Release Log
+      id: log_parser
+      run: |
+        if git diff --name-only HEAD~1 HEAD | grep -q "release_log.md"; then
+          echo "Release log was updated! Checking for tags..."
+          LAST_LINE=$(tail -n 1 release_log.md | xargs)
+          
+          case "$LAST_LINE" in
+            "[official]"*|"[dev]"*)
+              TYPE=$(echo "$LAST_LINE" | cut -d'-' -f1 | tr -d '[]' | xargs)
+              VERSION=$(echo "$LAST_LINE" | cut -d'-' -f2 | xargs)
+              TITLE=$(echo "$LAST_LINE" | cut -d'-' -f3- | xargs)
+              
+              echo "should_release=true" >> $GITHUB_OUTPUT
+              echo "rel_version=$VERSION" >> $GITHUB_OUTPUT
+              echo "rel_title=$TITLE" >> $GITHUB_OUTPUT
+              
+              if [ "$TYPE" = "dev" ]; then
+                echo "is_prerelease=true" >> $GITHUB_OUTPUT
+                echo "Triggering Dev Pre-Release: $VERSION - $TITLE"
+              else
+                echo "is_prerelease=false" >> $GITHUB_OUTPUT
+                echo "Triggering Official Latest Release: $VERSION - $TITLE"
+              fi
+              ;;
+            *)
+              echo "should_release=false" >> $GITHUB_OUTPUT
+              echo "Release log changed, but no valid release tag was found at the bottom."
+              ;;
+          esac
+        else
+          echo "should_release=false" >> $GITHUB_OUTPUT
+          echo "release_log.md was not changed in this commit. Just building code."
+        fi
 
-      - name: Upload 3DSX File
-        uses: actions/upload-artifact@v4
-        with:
-          name: PictoChat3D.3dsx
-          path: PictoChat3D.3dsx
+    # 3. Build the main production app
+    - name: Build Main App
+      run: |
+        make clean
+        make
+    
+    # Save main app files securely before clearing the workspace
+    - name: Save Main App Files
+      run: |
+        cp FourthTube.cia Better_FourthTube.cia
+        cp Better_FourthTube.3dsx main_app_backup.3dsx
 
-      - name: Upload CIA Installer
-        uses: actions/upload-artifact@v4
-        with:
-          name: PictoChat3D.cia
-          path: PictoChat3D.cia
+    # Clean the intermediate object files safely
+    - name: Clean Build Space
+      run: make clean
+
+    # 4. Build the Sandbox safely by swapping just the main file
+    - name: Build Test Sandbox
+      run: |
+        mv source/main.cpp main_bak.cpp
+        cp test/source/main.cpp source/main.cpp
+        make clean
+        make
+        mv FourthTube.cia test.cia
+        rm -f Better_FourthTube.3dsx
+        rm source/main.cpp
+        mv main_bak.cpp source/main.cpp
+      continue-on-error: true
+
+    # Restore the backup name for uploading
+    - name: Restore Main App 3dsx Name
+      run: mv main_app_backup.3dsx Better_FourthTube.3dsx
+
+    # 5. Upload files as SEPARATE artifacts (No more nested zips!)
+    - name: Upload Better_FourthTube.cia
+      uses: actions/upload-artifact@v4
+      with:
+        name: Better_FourthTube-${{ github.run_number }}.cia
+        path: Better_FourthTube.cia
+
+    - name: Upload Better_FourthTube.3dsx
+      uses: actions/upload-artifact@v4
+      with:
+        name: Better_FourthTube-${{ github.run_number }}.3dsx
+        path: Better_FourthTube.3dsx
+
+    - name: Upload test.cia
+      uses: actions/upload-artifact@v4
+      with:
+        name: test-${{ github.run_number }}.cia
+        path: test.cia
+      continue-on-error: true
+
+    # 6. Create GitHub Release (Only if release_log.md was explicitly changed with a tag)
+    - name: Create GitHub Release
+      uses: softprops/action-gh-release@v2
+      if: github.event_name == 'push' && github.ref == 'refs/heads/main' && steps.log_parser.outputs.should_release == 'true'
+      with:
+        tag_name: ${{ steps.log_parser.outputs.rel_version }}
+        name: "${{ steps.log_parser.outputs.rel_title }}"
+        draft: false
+        prerelease: ${{ steps.log_parser.outputs.is_prerelease }}
+        make_latest: ${{ steps.log_parser.outputs.is_prerelease == 'false' }}
+        files: |
+          Better_FourthTube.cia
+          Better_FourthTube.3dsx
+          test.cia
