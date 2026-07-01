@@ -14,11 +14,11 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
-    # 1. Manually install makerom directly to bypass container pacman issues
+    # 1. Download official, compiled makerom binary directly from the source release
     - name: Install makerom
       run: |
         apt-get update && apt-get install -y curl
-        curl -L -o /usr/local/bin/makerom https://github.com/proxam/makerom/releases/download/v0.18.4/makerom-x86_64-linux-gnu
+        curl -L -o /usr/local/bin/makerom https://github.com/3DSguy/Project_公開/releases/download/v0.17/makerom-x86_64-linux-gnu
         chmod +x /usr/local/bin/makerom
 
     # 2. Build the main production app
@@ -27,20 +27,11 @@ jobs:
         make clean
         make
     
-    # Rename files to match your preferred artifact names
+    # 3. Rename files to match your preferred artifact names
     - name: Prepare App Files
       run: |
+        cp PictoChat3D.3dsx Better_FourthTube.3dsx || cp FourthTube.3dsx Better_FourthTube.3dsx || true
         cp PictoChat3D.cia Better_FourthTube.cia || cp FourthTube.cia Better_FourthTube.cia || true
-        cp PictoChat3D.3dsx Better_FourthTube.3dsx || cp Better_FourthTube.3dsx main_app_backup.3dsx || true
-        cp Better_FourthTube.3dsx main_app_backup.3dsx || true
-
-    # 3. Clean intermediate files (Keeps workspace light)
-    - name: Clean Build Space
-      run: make clean
-
-    # Restore the backup name for uploading
-    - name: Restore Main App 3dsx Name
-      run: mv main_app_backup.3dsx Better_FourthTube.3dsx || true
 
     # 4. Upload files as 2 separate, unnested artifacts
     - name: Upload Better_FourthTube.3dsx
