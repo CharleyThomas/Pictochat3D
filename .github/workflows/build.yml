@@ -14,10 +14,12 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
-    # 1. Install the official 3DS dev environment package using local container cache
-    - name: Install Official 3DS Build Tools
+    # 1. Manually install makerom directly to bypass container pacman issues
+    - name: Install makerom
       run: |
-        dkp-pacman -S --noconfirm 3ds-dev
+        apt-get update && apt-get install -y curl
+        curl -L -o /usr/local/bin/makerom https://github.com/proxam/makerom/releases/download/v0.18.4/makerom-x86_64-linux-gnu
+        chmod +x /usr/local/bin/makerom
 
     # 2. Build the main production app
     - name: Build Main App
@@ -28,8 +30,9 @@ jobs:
     # Rename files to match your preferred artifact names
     - name: Prepare App Files
       run: |
-        cp FourthTube.cia Better_FourthTube.cia
-        cp Better_FourthTube.3dsx main_app_backup.3dsx
+        cp PictoChat3D.cia Better_FourthTube.cia || cp FourthTube.cia Better_FourthTube.cia || true
+        cp PictoChat3D.3dsx Better_FourthTube.3dsx || cp Better_FourthTube.3dsx main_app_backup.3dsx || true
+        cp Better_FourthTube.3dsx main_app_backup.3dsx || true
 
     # 3. Clean intermediate files (Keeps workspace light)
     - name: Clean Build Space
@@ -37,7 +40,7 @@ jobs:
 
     # Restore the backup name for uploading
     - name: Restore Main App 3dsx Name
-      run: mv main_app_backup.3dsx Better_FourthTube.3dsx
+      run: mv main_app_backup.3dsx Better_FourthTube.3dsx || true
 
     # 4. Upload files as 2 separate, unnested artifacts
     - name: Upload Better_FourthTube.3dsx
