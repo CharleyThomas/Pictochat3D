@@ -14,12 +14,15 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
-    # 1. Download official, compiled makerom binary directly from the source release
+    # 1. Download official compiled makerom archive, extract the binary, and map it
     - name: Install makerom
       run: |
-        apt-get update && apt-get install -y curl
-        curl -L -o /usr/local/bin/makerom https://github.com/3DSguy/Project_公開/releases/download/v0.17/makerom-x86_64-linux-gnu
+        apt-get update && apt-get install -y curl unzip
+        curl -L -o makerom.zip https://github.com/3DSGuy/Project_CTR/releases/download/makerom-v0.18.3/makerom-v0.18.3-ubuntu_x86_64.zip
+        unzip makerom.zip -d makerom_extracted
+        cp makerom_extracted/makerom /usr/local/bin/makerom
         chmod +x /usr/local/bin/makerom
+        rm -rf makerom.zip makerom_extracted
 
     # 2. Build the main production app
     - name: Build Main App
